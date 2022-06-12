@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod packed_array {
     use std::ptr::NonNull;
     use std::marker::PhantomData;
@@ -83,15 +84,4 @@ mod packed_array {
             }
         }
     }
-}
-
-fn main() {
-    use packed_array::*;
-    let mut a : PackedArray<Vec<String>, 5> = PackedArray::new();
-    let index = a.append(vec!["First".to_string(), "First2".to_string()]);
-    let index2 = a.append(vec!["Second".to_string(), "Second2".to_string()]);
-    println!("{:?}", a.get(index));
-    a.remove(index);
-    let b = a.get(index2);
-    println!("{:?}", a.get(index2));
 }
