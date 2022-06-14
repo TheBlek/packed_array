@@ -60,6 +60,7 @@ impl<T, const N : usize> PackedArray<T, N> {
 
     /// Adds element to the end of array.
     /// Return index of newly-added element for future access
+    /// Panics if structure is full
     pub fn append(&mut self, value : T) -> usize {
         assert!(self.size < N);
 

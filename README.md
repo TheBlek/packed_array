@@ -6,7 +6,7 @@ Similar one is used in full-fledged ECS game engine [EnTT](https://github.com/sk
 Order of elements is not garanteed to stay the same so you should save indices of appended elements for future access
 
 # Usage
-`
+```rust
     use packed_array::PackedArray;
 
     #[test]
@@ -73,4 +73,4 @@ Order of elements is not garanteed to stay the same so you should save indices o
         assert_eq!(a.get(i1), &91);
         assert_eq!(a.get(i2), &19);
     }
-`
+```
