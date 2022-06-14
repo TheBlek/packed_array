@@ -5,6 +5,7 @@ use std::alloc::{self, Layout};
 use std::ptr;
 use array_init::array_init;
 
+/// Densly packed data structure for fast iteration
 pub struct PackedArray<T, const N : usize> {
     size : usize,
     index_to_entry : [usize; N],
@@ -14,6 +15,8 @@ pub struct PackedArray<T, const N : usize> {
 }
 
 impl<T, const N : usize> PackedArray<T, N> {
+
+    /// Return new PackedArray with allocated storage
     pub fn new() -> Self {
         let layout = Layout::array::<T>(N).unwrap();
         let ptr = match NonNull::new(unsafe { alloc::alloc(layout) } as *mut T) {
@@ -30,10 +33,13 @@ impl<T, const N : usize> PackedArray<T, N> {
         }
     }
 
+    /// Returns current number of elements stored
     pub fn size(&self) -> usize {
         self.size
     }
 
+    /// Returns reference to an element at index
+    /// BEWARE: Element might be mutated while you have a reference
     pub fn get(&self, index : usize) -> & T {
         assert!(self.index_to_entry[index] < self.size);
 
@@ -42,6 +48,8 @@ impl<T, const N : usize> PackedArray<T, N> {
         }
     }
 
+    /// Return mutable reference to an element at index
+    /// BEWARE: Function is not secure from giving out multiple mutable references
     pub fn get_mut(&mut self, index : usize) -> &mut T {
         assert!(self.index_to_entry[index] < self.size);
 
@@ -50,6 +58,8 @@ impl<T, const N : usize> PackedArray<T, N> {
         }
     }
 
+    /// Adds element to the end of array.
+    /// Return index of newly-added element for future access
     pub fn append(&mut self, value : T) -> usize {
         assert!(self.size < N);
 
@@ -61,6 +71,7 @@ impl<T, const N : usize> PackedArray<T, N> {
         self.entry_to_index[self.size-1]
     }
 
+    /// Removes element by given index
     pub fn remove(&mut self, index : usize) {
         assert!(self.index_to_entry[index] < self.size);
 
@@ -81,22 +92,26 @@ impl<T, const N : usize> PackedArray<T, N> {
         }
     }
 
+    /// Returns an underlying storage as slice
     pub fn as_slice(&self) -> &[T] {
         unsafe {
             std::slice::from_raw_parts(self.ptr.as_ptr(), self.size)
         }
     }
 
+    /// Returns an underlying storage as mutable slice
     pub fn as_slice_mut(&mut self) -> &mut [T] {
         unsafe {
             std::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.size)
         }
     }
 
+    /// Returns an iterator to underlying storage
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
        self.as_slice().iter() 
     }
 
+    /// Return a mutable iterator to underlying storage
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.as_slice_mut().iter_mut()
     }
