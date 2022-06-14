@@ -30,25 +30,23 @@ impl<T, const N : usize> PackedArray<T, N> {
         }
     }
 
-    fn get_ptr(&self, entry : usize) -> *mut T {
-        unsafe {
-            self.ptr.as_ptr().add(entry)
-        }
+    pub fn size(&self) -> usize {
+        self.size
     }
 
     pub fn get(&self, index : usize) -> & T {
         assert!(self.index_to_entry[index] < self.size);
 
         unsafe {
-           NonNull::new(self.get_ptr(self.index_to_entry[index])).unwrap().as_ref()
+            &*self.get_ptr(self.index_to_entry[index])
         }
     }
 
-    pub fn get_mut(&self, index : usize) -> &mut T {
+    pub fn get_mut(&mut self, index : usize) -> &mut T {
         assert!(self.index_to_entry[index] < self.size);
 
         unsafe {
-            NonNull::new(self.get_ptr(self.index_to_entry[index])).unwrap().as_mut()
+            &mut *self.get_ptr(self.index_to_entry[index])
         }
     }
 
@@ -80,6 +78,32 @@ impl<T, const N : usize> PackedArray<T, N> {
 
             self.index_to_entry[last_index] = entry_to_delete;
             self.entry_to_index[entry_to_delete] = last_index;
+        }
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        unsafe {
+            std::slice::from_raw_parts(self.ptr.as_ptr(), self.size)
+        }
+    }
+
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        unsafe {
+            std::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.size)
+        }
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, T> {
+       self.as_slice().iter() 
+    }
+
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
+        self.as_slice_mut().iter_mut()
+    }
+
+    fn get_ptr(&self, entry : usize) -> *mut T {
+        unsafe {
+            self.ptr.as_ptr().add(entry)
         }
     }
 }
