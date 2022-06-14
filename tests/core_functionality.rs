@@ -13,18 +13,18 @@ fn append_remove() {
     let i2 = a.append(18);
     let i3 = a.append(-80);
     assert_eq!(a.size(), 3);
-    assert_eq!(a.get(i1), &90);
-    assert_eq!(a.get(i2), &18);
-    assert_eq!(a.get(i3), &-80);
+    assert_eq!(a[i1], 90);
+    assert_eq!(a[i2], 18);
+    assert_eq!(a[i3], -80);
 
     a.remove(i3);
     assert_eq!(a.size(), 2);
-    assert_eq!(a.get(i1), &90);
-    assert_eq!(a.get(i2), &18);
+    assert_eq!(a[i1], 90);
+    assert_eq!(a[i2], 18);
 
     a.remove(i1);
     assert_eq!(a.size(), 1);
-    assert_eq!(a.get(i2), &18);
+    assert_eq!(a[i2], 18);
 }
 
 #[test]
@@ -33,10 +33,10 @@ fn references() {
     let i1 = a.append(90);
     let i2 = a.append(18);
 
-    let number = a.get_mut(i2);
+    let number = &mut a[i2];
     *number = 80;
-    assert_eq!(a.get(i2), &80);
-    assert_eq!(a.get(i1), &90);
+    assert_eq!(a[i2], 80);
+    assert_eq!(a[i1], 90);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn iteration() {
 
     let mut i = 0;
     for item in a.iter() {
-        assert_eq!(item, a.get(i));
+        assert_eq!(*item, a[i]);
         i += 1;
     }
 }
@@ -61,7 +61,7 @@ fn iteration_mut() {
     for item in a.iter_mut() {
         *item += 1;
     }
-    assert_eq!(a.get(i1), &91);
-    assert_eq!(a.get(i2), &19);
+    assert_eq!(a[i1], 91);
+    assert_eq!(a[i2], 19);
 }
 
