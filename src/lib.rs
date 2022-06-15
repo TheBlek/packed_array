@@ -34,14 +34,25 @@ impl<T, const N : usize> PackedArray<T, N> {
     }
 
     /// Returns current number of elements stored
-    pub fn size(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.size
     }
 
+    /// Returns true if there is a valid entry under index
+    pub fn has(&self, index : usize) -> bool {
+        self.index_to_entry[index] < self.size
+    }
+
+    /// Returns true if allocated memory is exhausted
+    /// True also means that no more entries can be added
+    pub fn full(&self) -> bool {
+        self.size == N
+    }
+
     /// Returns reference to an element at index
-    /// BEWARE: Element might be mutated while you have a reference
+    /// Panics if there is no valid element with such index 
     pub fn get(&self, index : usize) -> & T {
-        assert!(self.index_to_entry[index] < self.size);
+        assert!(self.has(index));
 
         unsafe {
             &*self.get_ptr(self.index_to_entry[index])
@@ -49,9 +60,9 @@ impl<T, const N : usize> PackedArray<T, N> {
     }
 
     /// Return mutable reference to an element at index
-    /// BEWARE: Function is not secure from giving out multiple mutable references
+    /// Panics if there is no valid element with such index 
     pub fn get_mut(&mut self, index : usize) -> &mut T {
-        assert!(self.index_to_entry[index] < self.size);
+        assert!(self.has(index));
 
         unsafe {
             &mut *self.get_ptr(self.index_to_entry[index])
@@ -62,7 +73,7 @@ impl<T, const N : usize> PackedArray<T, N> {
     /// Return index of newly-added element for future access
     /// Panics if structure is full
     pub fn append(&mut self, value : T) -> usize {
-        assert!(self.size < N);
+        assert!(!self.full());
 
         unsafe {
             ptr::write(self.ptr.as_ptr().add(self.size), value);
@@ -72,24 +83,29 @@ impl<T, const N : usize> PackedArray<T, N> {
         self.entry_to_index[self.size-1]
     }
 
+    /// Sets value of passed index
+    /// If there is no valid element with such index, element is added
+    pub fn set(&mut self, index : usize, value : T) {
+        if !self.has(index) {
+            self.swap_with_back(index);
+            self.size += 1;
+        }
+        self[index] = value;
+    }
+
     /// Removes element by given index
+    /// Panics if there is no valid element with such index 
     pub fn remove(&mut self, index : usize) {
-        assert!(self.index_to_entry[index] < self.size);
+        assert!(self.has(index));
 
         self.size -= 1;
         if self.index_to_entry[index] != self.size {
             let entry_to_delete = self.index_to_entry[index];
-            let last_index = self.entry_to_index[self.size];
 
             unsafe {
                 ptr::copy_nonoverlapping(self.get_ptr(self.size), self.get_ptr(entry_to_delete), 1);
             }
-            
-            self.index_to_entry[index] = self.size;
-            self.entry_to_index[self.size] = index;
-
-            self.index_to_entry[last_index] = entry_to_delete;
-            self.entry_to_index[entry_to_delete] = last_index;
+            self.swap_with_back(index);
         }
     }
 
@@ -115,6 +131,14 @@ impl<T, const N : usize> PackedArray<T, N> {
     /// Return a mutable iterator to underlying storage
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.as_slice_mut().iter_mut()
+    }
+
+    fn swap_with_back(&mut self, index : usize) {
+        let entry = self.index_to_entry[index];
+        let last_index = self.entry_to_index[self.size];
+
+        self.index_to_entry.swap(index, last_index);
+        self.entry_to_index.swap(entry, self.size);
     }
 
     fn get_ptr(&self, entry : usize) -> *mut T {

@@ -10,7 +10,7 @@ checksum = "6945cc5422176fc5e602e590c2878d2c2acd9a4fe20a4baa7c28022521698ec6"
 
 [[package]]
 name = "packed_array"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "array-init",
 ]
